@@ -41,8 +41,10 @@ export class MediasService {
   }
 
   async update(id: number, body: UpdateMediaDto) {
+    if (isNaN(id) || id <= 0) throw new IdNotFoundException(id);
+
     const mediaById = await this.repository.findOne(id);
-    if (!mediaById || !id || id <= 0) {
+    if (!mediaById) {
       throw new IdNotFoundException(id);
     }
     const checkMedia = await this.repository.findByTitleAndUsername(

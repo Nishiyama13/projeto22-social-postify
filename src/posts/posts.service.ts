@@ -3,85 +3,65 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostsRepository } from './posts.repository';
 import { IdNotFoundException } from '../exceptions/id-not-found.exception';
+import { PostDataDto } from './dto/post-data.dto';
 
 @Injectable()
 export class PostsService {
   constructor(private readonly repository: PostsRepository) {}
 
-  async create(body: CreatePostDto) {
-    if (!body || !body.title || !body.text) {
-      throw new BadRequestException('Insira valores para title e text'); //da para colocar um erro perssonalizado
+  private validateId(id: number) {
+    if (isNaN(id) || id <= 0) {
+      throw new IdNotFoundException(id);
     }
-    const postData = await this.repository.create(body);
-
-    if (!body.image) {
-      return {
-        id: postData.id,
-        title: postData.title,
-        text: postData.text,
-      };
-    }
-    return postData;
   }
 
-  async findAll() {
+  private formatPostData(data: PostDataDto) {
+    const responseData: PostDataDto = {
+      id: data.id,
+      title: data.title,
+      text: data.text,
+    };
+
+    if (data.image !== null) {
+      responseData.image = data.image;
+    }
+    return responseData;
+  }
+
+  async create(body: CreatePostDto): Promise<PostDataDto> {
+    if (!body || !body.title || !body.text) {
+      throw new BadRequestException('Insira valores para title e/ou text');
+    }
+    const postData = await this.repository.create(body);
+    return this.formatPostData(postData);
+  }
+
+  async findAll(): Promise<PostDataDto[]> {
     const postDataList = await this.repository.findAll();
-
-    const responseDataList = postDataList.map((postData) => {
-      const responseData = {
-        id: postData.id,
-        title: postData.title,
-        text: postData.text,
-      };
-
-      if (!postData.image) {
-        return responseData;
-      }
-
-      return postData;
+    const responseDataList: PostDataDto[] = postDataList.map((postData) => {
+      return this.formatPostData(postData);
     });
-
     return responseDataList;
   }
 
-  async findOne(id: number) {
-    if (isNaN(id) || id <= 0) throw new IdNotFoundException(id);
+  async findOne(id: number): Promise<PostDataDto> {
+    this.validateId(id);
     const postById = await this.repository.findOne(id);
-
     if (!postById) {
       throw new IdNotFoundException(id);
     }
-
-    const responseData = {
-      id: postById.id,
-      title: postById.title,
-      text: postById.text,
-    };
-
-    if (postById.image === null) {
-      return responseData;
-    }
-
-    return postById;
+    return this.formatPostData(postById);
   }
 
   async update(id: number, body: UpdatePostDto) {
-    if (isNaN(id) || id <= 0) throw new IdNotFoundException(id);
-
+    this.validateId(id);
     const postById = await this.repository.findOne(id);
     if (!postById) {
       throw new IdNotFoundException(id);
     }
 
     const postData = await this.repository.update(id, body);
-    if (!postData.image) {
-      return {
-        id: postData.id,
-        title: postData.title,
-        text: postData.text,
-      };
-    }
-    return postData;
+    return this.formatPostData(postData);
   }
 
   async remove(id: number) {

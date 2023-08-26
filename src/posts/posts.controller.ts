@@ -12,6 +12,7 @@ import {
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { PostDataDto } from './dto/post-data.dto';
 
 @Controller('posts')
 export class PostsController {
@@ -19,17 +20,17 @@ export class PostsController {
 
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
-  async create(@Body() body: CreatePostDto) {
+  async create(@Body() body: CreatePostDto): Promise<PostDataDto> {
     return await this.postsService.create(body);
   }
 
   @Get()
-  async findAll() {
+  async findAll(): Promise<PostDataDto[]> {
     return await this.postsService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string): Promise<PostDataDto> {
     return await this.postsService.findOne(+id);
   }
 
