@@ -34,9 +34,9 @@ export class MediasController {
   async update(
     @Param('id')
     id: string,
-    @Body() updateMediaDto: UpdateMediaDto,
+    @Body() body: UpdateMediaDto,
   ) {
-    return await this.mediasService.update(+id, updateMediaDto);
+    return await this.mediasService.update(+id, body);
   }
 
   @Delete(':id')

@@ -30,8 +30,11 @@ export class MediasService {
   }
 
   async findOne(id: number) {
+    if (isNaN(id) || id <= 0) throw new IdNotFoundException(id);
+
     const mediaById = await this.repository.findOne(id);
-    if (!mediaById || !id || id <= 0) {
+
+    if (!mediaById) {
       throw new IdNotFoundException(id);
     }
     return await this.repository.findOne(id);
