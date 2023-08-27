@@ -47,6 +47,5 @@ model Publication {
   media Media @relation(fields: [mediaId], references: [id])
   post Post @relation(fields: [postId], references: [id])
 
-  @@unique([mediaId, postId])
   @@map("publications")
 }

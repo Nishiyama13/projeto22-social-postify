@@ -20,7 +20,7 @@ export class PostsController {
 
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
-  async create(@Body() body: CreatePostDto): Promise<PostDataDto> {
+  async create(@Body() body: CreatePostDto): Promise<Omit<PostDataDto, 'id'>> {
     return await this.postsService.create(body);
   }
 
@@ -35,6 +35,7 @@ export class PostsController {
   }
 
   @Put(':id')
+  @UsePipes(new ValidationPipe({ transform: true }))
   async update(@Param('id') id: string, @Body() body: UpdatePostDto) {
     return await this.postsService.update(+id, body);
   }

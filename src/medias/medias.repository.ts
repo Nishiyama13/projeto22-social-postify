@@ -5,7 +5,6 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class MediasRepository {
-  [x: string]: any;
   constructor(private readonly prisma: PrismaService) {}
 
   async create(body: CreateMediaDto) {

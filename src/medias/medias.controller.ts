@@ -6,6 +6,8 @@ import {
   Param,
   Delete,
   Put,
+  ValidationPipe,
+  UsePipes,
 } from '@nestjs/common';
 import { MediasService } from './medias.service';
 import { CreateMediaDto } from './dto/create-media.dto';
@@ -16,6 +18,7 @@ export class MediasController {
   constructor(private readonly mediasService: MediasService) {}
 
   @Post()
+  @UsePipes(new ValidationPipe({ transform: true }))
   async create(@Body() body: CreateMediaDto) {
     return await this.mediasService.create(body);
   }
@@ -43,17 +46,4 @@ export class MediasController {
   async remove(@Param('id') id: string) {
     return await this.mediasService.remove(+id);
   }
-  /*
-  @Get('error')
-  getError() {
-    return this.mediasService.generateError();
-    /*
-    try {
-      return this.mediasService.generateError();
-    } catch (error) {
-      console.log('Estou sendo tratado');
-      throw new HttpException('Fui tratado melhor!', HttpStatus.UNAUTHORIZED);
-    }
-    */
-  //}
 }

@@ -1,18 +1,31 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateMediaDto } from './dto/create-media.dto';
 import { UpdateMediaDto } from './dto/update-media.dto';
-import { Media } from '@prisma/client';
 import { MediasRepository } from './medias.repository';
 import { IdNotFoundException } from '../exceptions/id-not-found.exception';
 import { DuplicateDataException } from '../exceptions/duplicate-data.exception';
+import { MediaDataDto } from './dto/media-data.dto';
 
 @Injectable()
 export class MediasService {
-  private medias: Media[];
-
   constructor(private readonly repository: MediasRepository) {}
 
-  async create(body: CreateMediaDto) {
+  private validateId(id: number) {
+    if (isNaN(id) || id <= 0) {
+      throw new IdNotFoundException(id);
+    }
+  }
+
+  private formatMediaData(data: MediaDataDto) {
+    const responseData: MediaDataDto = {
+      id: data.id,
+      title: data.title,
+      username: data.username,
+    };
+    return responseData;
+  }
+
+  async create(body: CreateMediaDto): Promise<Omit<MediaDataDto, 'id'>> {
     const checkMedia = await this.repository.findByTitleAndUsername(
       body.title,
       body.username,
@@ -22,26 +35,40 @@ export class MediasService {
       throw new DuplicateDataException(body.title, body.username);
     }
 
-    return await this.repository.create(body);
+    const mediaData = await this.repository.create(body);
+    const responseData = {
+      title: mediaData.title,
+      username: mediaData.username,
+    };
+    return responseData;
+    //return this.formatMediaData(mediaData);
   }
 
-  async findAll() {
-    return await this.repository.findAll();
+  async findAll(): Promise<MediaDataDto[]> {
+    const mediaDataList = await this.repository.findAll();
+    const responseDataList: MediaDataDto[] = mediaDataList.map((mediaData) => {
+      return this.formatMediaData(mediaData);
+    });
+    return responseDataList;
   }
 
-  async findOne(id: number) {
-    if (isNaN(id) || id <= 0) throw new IdNotFoundException(id);
+  async findOne(id: number): Promise<MediaDataDto> {
+    this.validateId(id);
 
     const mediaById = await this.repository.findOne(id);
 
     if (!mediaById) {
       throw new IdNotFoundException(id);
     }
-    return await this.repository.findOne(id);
+    const mediaData = await this.repository.findOne(id);
+    return this.formatMediaData(mediaData);
   }
 
-  async update(id: number, body: UpdateMediaDto) {
-    if (isNaN(id) || id <= 0) throw new IdNotFoundException(id);
+  async update(
+    id: number,
+    body: UpdateMediaDto,
+  ): Promise<Omit<MediaDataDto, 'id'>> {
+    this.validateId(id);
 
     const mediaById = await this.repository.findOne(id);
     if (!mediaById) {
@@ -56,17 +83,16 @@ export class MediasService {
       throw new DuplicateDataException(body.title, body.username);
     }
 
-    return this.repository.update(id, body);
+    const mediaData = await this.repository.update(id, body);
+    const responseData = {
+      title: mediaData.title,
+      username: mediaData.username,
+    };
+    return responseData;
+    //return this.formatMediaData(mediaData);
   }
 
   remove(id: number) {
     return `This action removes a #${id} media`;
   }
-
-  generateError() {
-    //throw new Error('Erro ai pra implementar');   //ou
-    //throw new HttpException('Fui tratado na Service', HttpStatus.UNAUTHORIZED);   //ou
-    throw new NotFoundException('Não achei (Service)'); //Filtro global
-  }
 }
-//fazer validações de regra de negócio;

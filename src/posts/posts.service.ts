@@ -28,12 +28,20 @@ export class PostsService {
     return responseData;
   }
 
-  async create(body: CreatePostDto): Promise<PostDataDto> {
+  async create(body: CreatePostDto): Promise<Omit<PostDataDto, 'id'>> {
     if (!body || !body.title || !body.text) {
       throw new BadRequestException('Insira valores para title e/ou text');
     }
     const postData = await this.repository.create(body);
-    return this.formatPostData(postData);
+    const responseData: Omit<PostDataDto, 'id'> = {
+      title: postData.title,
+      text: postData.text,
+    };
+
+    if (postData.image !== null) {
+      responseData.image = postData.image;
+    }
+    return responseData;
   }
 
   async findAll(): Promise<PostDataDto[]> {
@@ -53,7 +61,10 @@ export class PostsService {
     return this.formatPostData(postById);
   }
 
-  async update(id: number, body: UpdatePostDto) {
+  async update(
+    id: number,
+    body: UpdatePostDto,
+  ): Promise<Omit<PostDataDto, 'id'>> {
     this.validateId(id);
     const postById = await this.repository.findOne(id);
     if (!postById) {
@@ -61,7 +72,15 @@ export class PostsService {
     }
 
     const postData = await this.repository.update(id, body);
-    return this.formatPostData(postData);
+    const responseData: Omit<PostDataDto, 'id'> = {
+      title: postData.title,
+      text: postData.text,
+    };
+
+    if (postData.image !== null) {
+      responseData.image = postData.image;
+    }
+    return responseData;
   }
 
   async remove(id: number) {
