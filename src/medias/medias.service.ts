@@ -1,14 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateMediaDto } from './dto/create-media.dto';
 import { UpdateMediaDto } from './dto/update-media.dto';
 import { MediasRepository } from './medias.repository';
 import { IdNotFoundException } from '../exceptions/id-not-found.exception';
 import { DuplicateDataException } from '../exceptions/duplicate-data.exception';
 import { MediaDataDto } from './dto/media-data.dto';
+import { PublicationsService } from '../publications/publications.service';
+import { ActionForbiddenException } from '../exceptions/action-forbidden.exception';
 
 @Injectable()
 export class MediasService {
-  constructor(private readonly repository: MediasRepository) {}
+  constructor(
+    private readonly repository: MediasRepository,
+    @Inject(forwardRef(() => PublicationsService))
+    private readonly publicationService: PublicationsService,
+  ) {}
 
   private validateId(id: number) {
     if (isNaN(id) || id <= 0) {
@@ -89,10 +95,21 @@ export class MediasService {
       username: mediaData.username,
     };
     return responseData;
-    //return this.formatMediaData(mediaData);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} media`;
+  async removeMedia(id: number) {
+    this.validateId(id);
+    const mediaId: number = id;
+    const checkMediaById = await this.repository.findOne(id);
+    if (!checkMediaById) {
+      throw new IdNotFoundException(id);
+    }
+    //eslint-disable-next-line
+    const checkPublicationByMediaId = await this.publicationService.findOneByMediaId(mediaId);
+    if (checkPublicationByMediaId) {
+      throw new ActionForbiddenException(mediaId); //mudar para um novo erro
+    }
+
+    await this.repository.removeMedia(id);
   }
 }

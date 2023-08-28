@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  BadRequestException,
+} from '@nestjs/common';
 import { CreatePublicationDto } from './dto/create-publication.dto';
 import { UpdatePublicationDto } from './dto/update-publication.dto';
 import { PublicationsRepository } from './publications.repository';
@@ -12,7 +17,9 @@ import { ActionForbiddenException } from '../exceptions/action-forbidden.excepti
 export class PublicationsService {
   constructor(
     private readonly repository: PublicationsRepository,
+    @Inject(forwardRef(() => PostsService))
     private readonly postsService: PostsService,
+    @Inject(forwardRef(() => MediasService))
     private readonly mediasService: MediasService,
   ) {}
 
@@ -66,6 +73,24 @@ export class PublicationsService {
       throw new IdNotFoundException(id);
     }
     return this.formatPublicationData(publicationById);
+  }
+
+  async findOneByPostId(postId: number): Promise<boolean> {
+    const findOneByPostId = await this.repository.findOneByPostId(postId);
+
+    if (!findOneByPostId) {
+      return false;
+    }
+    return true;
+  }
+
+  async findOneByMediaId(mediaId: number): Promise<boolean> {
+    const findOneByMediaId = await this.repository.findOneByMediaId(mediaId);
+
+    if (!findOneByMediaId) {
+      return false;
+    }
+    return true;
   }
 
   async update(

@@ -1,13 +1,24 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  BadRequestException,
+} from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostsRepository } from './posts.repository';
 import { IdNotFoundException } from '../exceptions/id-not-found.exception';
 import { PostDataDto } from './dto/post-data.dto';
+import { ActionForbiddenException } from '../exceptions/action-forbidden.exception';
+import { PublicationsService } from '../publications/publications.service';
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly repository: PostsRepository) {}
+  constructor(
+    private readonly repository: PostsRepository,
+    @Inject(forwardRef(() => PublicationsService))
+    private readonly publicationService: PublicationsService,
+  ) {}
 
   private validateId(id: number) {
     if (isNaN(id) || id <= 0) {
@@ -83,7 +94,19 @@ export class PostsService {
     return responseData;
   }
 
-  async remove(id: number) {
-    return await `This action removes a #${id} post`;
+  async removePost(id: number) {
+    this.validateId(id);
+    const postId: number = id;
+    const checkPostById = await this.repository.findOne(id);
+    if (!checkPostById) {
+      throw new IdNotFoundException(id);
+    }
+    //eslint-disable-next-line
+    const checkPublicationByPostId = await this.publicationService.findOneByPostId(postId);
+    if (checkPublicationByPostId) {
+      throw new ActionForbiddenException(postId); //mudar para um novo erro
+    }
+
+    await this.repository.removePost(id);
   }
 }
