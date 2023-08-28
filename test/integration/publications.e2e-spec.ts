@@ -8,7 +8,7 @@ import { createFuturePublication } from '../factories/publications-factory';
 import { createMedia } from '../factories/medias-factory';
 import { createPost } from '../factories/posts-factory';
 
-describe('Posts (e2e)', () => {
+describe('Publications (e2e)', () => {
   let app: INestApplication;
   let server: request.SuperTest<request.Test>;
   const prisma: PrismaService = new PrismaService();
