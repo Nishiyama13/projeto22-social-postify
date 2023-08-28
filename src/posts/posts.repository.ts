@@ -30,7 +30,9 @@ export class PostsRepository {
     });
   }
 
-  async remove(id: number) {
-    return `This action removes a #${id} post`;
+  async removePost(id: number) {
+    return await this.prisma.post.delete({
+      where: { id },
+    });
   }
 }

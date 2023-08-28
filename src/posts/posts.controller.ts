@@ -4,19 +4,23 @@ import {
   Post,
   Body,
   Param,
-  Delete,
   Put,
   UsePipes,
   ValidationPipe,
+  Delete,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostDataDto } from './dto/post-data.dto';
+import { PublicationsService } from '../publications/publications.service';
 
 @Controller('posts')
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(
+    private readonly postsService: PostsService,
+    private readonly publicationService: PublicationsService,
+  ) {}
 
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
@@ -42,6 +46,6 @@ export class PostsController {
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return await this.postsService.remove(+id);
+    return await this.postsService.removePost(+id);
   }
 }
