@@ -6,7 +6,7 @@ import { IdNotFoundException } from '../exceptions/id-not-found.exception';
 import { DuplicateDataException } from '../exceptions/duplicate-data.exception';
 import { MediaDataDto } from './dto/media-data.dto';
 import { PublicationsService } from '../publications/publications.service';
-import { ActionForbiddenException } from '../exceptions/action-forbidden.exception';
+import { PostOrMediaForbiddenException } from '../exceptions/post-or-media-forbidden.excetion';
 
 @Injectable()
 export class MediasService {
@@ -107,7 +107,7 @@ export class MediasService {
     //eslint-disable-next-line
     const checkPublicationByMediaId = await this.publicationService.findOneByMediaId(mediaId);
     if (checkPublicationByMediaId) {
-      throw new ActionForbiddenException(mediaId); //mudar para um novo erro
+      throw new PostOrMediaForbiddenException(mediaId, 'media'); //mudar para um novo erro
     }
 
     await this.repository.removeMedia(id);

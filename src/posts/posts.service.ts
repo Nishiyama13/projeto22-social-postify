@@ -9,8 +9,8 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { PostsRepository } from './posts.repository';
 import { IdNotFoundException } from '../exceptions/id-not-found.exception';
 import { PostDataDto } from './dto/post-data.dto';
-import { ActionForbiddenException } from '../exceptions/action-forbidden.exception';
 import { PublicationsService } from '../publications/publications.service';
+import { PostOrMediaForbiddenException } from '../exceptions/post-or-media-forbidden.excetion';
 
 @Injectable()
 export class PostsService {
@@ -104,7 +104,7 @@ export class PostsService {
     //eslint-disable-next-line
     const checkPublicationByPostId = await this.publicationService.findOneByPostId(postId);
     if (checkPublicationByPostId) {
-      throw new ActionForbiddenException(postId); //mudar para um novo erro
+      throw new PostOrMediaForbiddenException(postId, 'post'); //mudar para um novo erro
     }
 
     await this.repository.removePost(id);
